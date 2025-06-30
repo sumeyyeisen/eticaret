@@ -1,7 +1,9 @@
 package com.proje.eticaret.service;
 
+import com.proje.eticaret.dto.CartDTO;
 import com.proje.eticaret.entity.Cart;
 import com.proje.eticaret.entity.Customer;
+import com.proje.eticaret.mapper.CartMapper;
 import com.proje.eticaret.repository.CartRepository;
 import com.proje.eticaret.repository.CustomerRepository;
 import com.proje.eticaret.service.impl.CartServiceImpl;
@@ -24,6 +26,9 @@ public class CartServiceTest {
     @Mock
     private CustomerRepository customerRepository;
 
+    @Mock
+    private CartMapper cartMapper;
+
     @InjectMocks
     private CartServiceImpl cartService;
 
@@ -40,11 +45,15 @@ public class CartServiceTest {
         Cart cart = new Cart();
         cart.setCustomer(customer);
 
+        CartDTO cartDTO = new CartDTO();
+        cartDTO.setTotalPrice(100.0);
+
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
         when(cartRepository.findByCustomerId(1L)).thenReturn(Optional.of(cart));
+        when(cartMapper.toDTO(cart)).thenReturn(cartDTO);
 
-        Cart result = cartService.getCartByCustomerId(1L);
-        assertEquals(cart, result);
+        CartDTO result = cartService.getCartByCustomerId(1L);
+        assertEquals(cartDTO, result);
     }
 
 }

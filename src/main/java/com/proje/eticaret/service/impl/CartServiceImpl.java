@@ -1,12 +1,19 @@
 package com.proje.eticaret.service.impl;
 
-import com.proje.eticaret.entity.*;
-import com.proje.eticaret.exception.*;
-import com.proje.eticaret.repository.*;
+import com.proje.eticaret.dto.CartDTO;
+import com.proje.eticaret.entity.Cart;
+import com.proje.eticaret.entity.Item;
+import com.proje.eticaret.entity.Product;
+import com.proje.eticaret.exception.ResourceNotFoundException;
+import com.proje.eticaret.mapper.CartMapper;
+import com.proje.eticaret.repository.CartRepository;
+import com.proje.eticaret.repository.ProductRepository;
 import com.proje.eticaret.service.CartService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -14,132 +21,83 @@ import java.util.Optional;
 public class CartServiceImpl implements CartService {
 
     private final CartRepository cartRepository;
-    private final CartItemRepository cartItemRepository;
+    private final CartMapper cartMapper;
     private final ProductRepository productRepository;
-    private final CustomerRepository customerRepository;
 
     @Override
-    public Cart getCartByCustomerId(Long customerId) {
-        return cartRepository.findByCustomerId(customerId)
-                .orElseThrow(() -> new RuntimeException("ID'si " + customerId + " olan müşterinin sepeti bulunamadı"));
+    public CartDTO getCartById(Long id) {
+        Cart cart = cartRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart", "id", id));
+        return cartMapper.toDTO(cart);
     }
 
     @Override
-    public Cart addProductToCart(Long customerId, Long productId, Integer quantity) {
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new CustomerNotFoundException("ID'si " + customerId + " olan müşteri yok"));
-
-        Cart cart = cartRepository.findByCustomerId(customerId).orElse(null);
-        if (cart == null) {
-            cart = new Cart();
-            cart.setCustomer(customer);
-            cart.setTotalPrice(0.0);
-            cart = cartRepository.save(cart);
-        }
-
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ProductNotFoundException("ID'si " + productId + " olan ürün yok"));
-
-        if (product.getStock() < quantity) {
-            throw new InsufficientStockException("ID'si " + productId + " olan ürün stokta yetersiz");
-        }
-
-        Optional<CartItem> optionalCartItem = cart.getCartItems().stream()
-                .filter(ci -> ci.getProduct().getId().equals(productId))
-                .findFirst();
-
-        CartItem cartItem;
-        if (optionalCartItem.isPresent()) {
-            cartItem = optionalCartItem.get();
-            int newQuantity = cartItem.getQuantity() + quantity;
-
-            if (product.getStock() < newQuantity) {
-                throw new InsufficientStockException("ID'si " + productId + " olan ürün istenilen miktarda stokta yok");
-            }
-
-            cartItem.setQuantity(newQuantity);
-        } else {
-            cartItem = new CartItem();
-            cartItem.setCart(cart);
-            cartItem.setProduct(product);
-            cartItem.setQuantity(quantity);
-            cart.getCartItems().add(cartItem);
-        }
-
-        updateCartTotal(cart);
-        cartRepository.save(cart);
-        cartItemRepository.save(cartItem);
-
-        return cart;
+    public List<CartDTO> getAllCarts() {
+        return cartMapper.toDTOList(cartRepository.findAll());
     }
 
     @Override
-    public Cart removeProductFromCart(Long customerId, Long productId) {
-        Cart cart = cartRepository.findByCustomerId(customerId)
-                .orElseThrow(() -> new RuntimeException("ID'si " + customerId + " olan müşteriye ait sepet yok"));
+    public CartDTO updateCart(Long id, CartDTO cartDTO) {
+        Cart cart = cartRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart", "id", id));
 
-        CartItem cartItem = cart.getCartItems().stream()
-                .filter(ci -> ci.getProduct().getId().equals(productId))
-                .findFirst()
-                .orElseThrow(() -> new ProductNotFoundException("Sepette ID'si " + productId + " olan ürün yok"));
-
-        cart.getCartItems().remove(cartItem);
-        cartItemRepository.delete(cartItem);
-
-        updateCartTotal(cart);
-        cartRepository.save(cart);
-
-        return cart;
+        cart.setTotalPrice(cartDTO.getTotalPrice());
+        return cartMapper.toDTO(cartRepository.save(cart));
     }
 
     @Override
-    public Cart updateCartItemQuantity(Long customerId, Long productId, Integer quantity) {
-        if (quantity <= 0) {
-            return removeProductFromCart(customerId, productId);
-        }
-
-        Cart cart = cartRepository.findByCustomerId(customerId)
-                .orElseThrow(() -> new RuntimeException("ID'si " + customerId + " olan müşteriye ait sepet yok"));
-
-        CartItem cartItem = cart.getCartItems().stream()
-                .filter(ci -> ci.getProduct().getId().equals(productId))
-                .findFirst()
-                .orElseThrow(() -> new ProductNotFoundException("Sepette ID'si " + productId + " olan ürün yok"));
-
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ProductNotFoundException("ID'si " + productId + " olan ürün yok"));
-
-        if (product.getStock() < quantity) {
-            throw new InsufficientStockException("ID'si " + productId + " olan üründen yeterli stok yok");
-        }
-
-        cartItem.setQuantity(quantity);
-        updateCartTotal(cart);
-
-        cartRepository.save(cart);
-        cartItemRepository.save(cartItem);
-
-        return cart;
-    }
-
-    @Override
-    public Cart emptyCart(Long customerId) {
-        Cart cart = cartRepository.findByCustomerId(customerId)
-                .orElseThrow(() -> new RuntimeException("Cart not found for customer ID: " + customerId));
-
-        cartItemRepository.deleteAll(cart.getCartItems());
-        cart.getCartItems().clear();
+    public void emptyCart(Long id) {
+        Cart cart = cartRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart", "id", id));
+        cart.getItems().clear();
         cart.setTotalPrice(0.0);
         cartRepository.save(cart);
-
-        return cart;
     }
 
-    private void updateCartTotal(Cart cart) {
-        double total = 0.0;
-        for (CartItem ci : cart.getCartItems()) {
-            total += ci.getProduct().getPrice() * ci.getQuantity();
+    @Override
+    public CartDTO getCartByCustomerId(Long customerId) {
+        Cart cart = cartRepository.findByCustomerId(customerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart", "customerId", customerId));
+        return cartMapper.toDTO(cart);
+    }
+
+    @Override
+    public void addProductToCart(Long cartId, Long productId, Integer quantity) {
+        Cart cart = cartRepository.findById(cartId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart", "id", cartId));
+
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product", "id", productId));
+
+        if (product.getStock() < quantity) {
+            throw new RuntimeException("Stok yetersiz.");
         }
+
+        Optional<Item> existingItem = cart.getItems().stream()
+                .filter(item -> item.getProduct().getId().equals(productId))
+                .findFirst();
+
+        if (existingItem.isPresent()) {
+            Item item = existingItem.get();
+            item.setQuantity(item.getQuantity() + quantity);
+        } else {
+            Item item = new Item();
+            item.setProduct(product);
+            item.setQuantity(quantity);
+            item.setProductPrice(BigDecimal.valueOf(product.getPrice()));
+            item.setCart(cart);
+            cart.getItems().add(item);
+        }
+
+        product.setStock(product.getStock() - quantity);
+
+        double total = cart.getItems().stream()
+                .mapToDouble(i -> i.getProductPrice().doubleValue() * i.getQuantity())
+                .sum();
+
         cart.setTotalPrice(total);
+
+        productRepository.save(product);
+        cartRepository.save(cart);
     }
 }

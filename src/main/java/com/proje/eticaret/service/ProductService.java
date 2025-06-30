@@ -1,16 +1,13 @@
 package com.proje.eticaret.service;
 
-import com.proje.eticaret.entity.Product;
+import com.proje.eticaret.dto.ProductDTO;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface ProductService {
-
-    Product createProduct(Product product);
-    Optional<Product>getProductById(Long id);
-    List<Product>getAllProducts();
-    Product updateProduct(Long id, Product product);
+    ProductDTO createProduct(ProductDTO productDTO);
+    ProductDTO getProductById(Long id);
+    List<ProductDTO> getAllProducts();
+    ProductDTO updateProduct(Long id, ProductDTO productDTO);
     void deleteProduct(Long id);
-
 }

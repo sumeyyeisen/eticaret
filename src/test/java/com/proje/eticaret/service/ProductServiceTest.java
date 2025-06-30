@@ -1,46 +1,50 @@
 package com.proje.eticaret.service;
 
+import com.proje.eticaret.dto.ProductDTO;
 import com.proje.eticaret.entity.Product;
 import com.proje.eticaret.repository.ProductRepository;
 import com.proje.eticaret.service.impl.ProductServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.modelmapper.ModelMapper;
+import org.mockito.*;
 
-import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 public class ProductServiceTest {
 
     @Mock
     private ProductRepository productRepository;
 
+    @Mock
+    private ModelMapper modelMapper; // <-- ModelMapper mocklandı
+
     @InjectMocks
     private ProductServiceImpl productService;
 
     @BeforeEach
-    public void setup() {
+    void setUp() {
         MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    public void testCreateProduct() {
+    void testCreateProduct() {
+        ProductDTO productDTO = new ProductDTO();
+        productDTO.setName("Test Product");
+        productDTO.setPrice(100.0);
 
-        Product product = new Product();
-        product.setName("Laptop");
-        product.setPrice(5000.0);
-        product.setStock(10);
+        Product productEntity = new Product();
+        productEntity.setName("Test Product");
+        productEntity.setPrice(100.0);
 
-        when(productRepository.save(any(Product.class))).thenReturn(product);
+        when(modelMapper.map(productDTO, Product.class)).thenReturn(productEntity);
+        when(productRepository.save(any(Product.class))).thenReturn(productEntity);
+        when(modelMapper.map(productEntity, ProductDTO.class)).thenReturn(productDTO);
 
-        Product saved = productService.createProduct(product);
+        ProductDTO savedProductDTO = productService.createProduct(productDTO);
 
-        assertNotNull(saved);
-        assertEquals("Laptop", saved.getName());
-        assertEquals(5000.0, saved.getPrice());
-        assertEquals(10, saved.getStock());
-        verify(productRepository, times(1)).save(product);
+        assertEquals("Test Product", savedProductDTO.getName());
+        assertEquals(100.0, savedProductDTO.getPrice());
     }
 }

@@ -1,11 +1,11 @@
 package com.proje.eticaret.service;
 
-import com.proje.eticaret.entity.Order;
+import com.proje.eticaret.dto.OrderDTO;
 
 import java.util.List;
 
 public interface OrderService {
-    Order placeOrder(Long customerId);
-    Order getOrderByCode(String code);
-    List<Order> getOrdersForCustomer(Long customerId);
+    OrderDTO placeOrder(Long customerId);
+    OrderDTO getOrderByCode(String code);
+    List<OrderDTO> getAllOrdersForCustomer(Long customerId);
 }

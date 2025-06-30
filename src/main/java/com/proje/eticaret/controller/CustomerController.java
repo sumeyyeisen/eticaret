@@ -1,27 +1,23 @@
+// src/main/java/com/proje/eticaret/controller/CustomerController.java
+
 package com.proje.eticaret.controller;
 
-import com.proje.eticaret.entity.Customer;
+import com.proje.eticaret.dto.CustomerDTO;
 import com.proje.eticaret.service.CustomerService;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/customers")
+@RequiredArgsConstructor
 public class CustomerController {
 
     private final CustomerService customerService;
 
-    public CustomerController(CustomerService customerService) {
-        this.customerService = customerService;
-    }
-
     @PostMapping
-    public ResponseEntity<Customer> addCustomer(@RequestBody Customer customer) {
-        Customer savedCustomer = customerService.addCustomer(customer);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedCustomer);
+    public ResponseEntity<CustomerDTO> addCustomer(@RequestBody CustomerDTO customerDTO) {
+        CustomerDTO createdCustomer = customerService.addCustomer(customerDTO);
+        return ResponseEntity.ok(createdCustomer);
     }
 }

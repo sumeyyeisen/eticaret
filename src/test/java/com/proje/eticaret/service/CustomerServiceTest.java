@@ -1,6 +1,9 @@
 package com.proje.eticaret.service;
 
+import com.proje.eticaret.dto.CustomerDTO;
 import com.proje.eticaret.entity.Customer;
+import com.proje.eticaret.mapper.CustomerMapper;
+import com.proje.eticaret.repository.CartRepository;
 import com.proje.eticaret.repository.CustomerRepository;
 import com.proje.eticaret.service.impl.CustomerServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +18,12 @@ public class CustomerServiceTest {
     @Mock
     private CustomerRepository customerRepository;
 
+    @Mock
+    private CartRepository cartRepository;  // CartRepository mock eklendi
+
+    @Mock
+    private CustomerMapper customerMapper;
+
     @InjectMocks
     private CustomerServiceImpl customerService;
 
@@ -25,14 +34,25 @@ public class CustomerServiceTest {
 
     @Test
     void testAddCustomer() {
-        Customer customer = new Customer();
-        customer.setFirstName("Ali");
-        customer.setEmail("ali@example.com");
+        CustomerDTO customerDTO = new CustomerDTO();
+        customerDTO.setFirstName("Ali");
+        customerDTO.setEmail("ali@example.com");
 
-        when(customerRepository.save(any(Customer.class))).thenReturn(customer);
+        Customer customerEntity = new Customer();
+        customerEntity.setFirstName("Ali");
+        customerEntity.setEmail("ali@example.com");
 
-        Customer saved = customerService.addCustomer(customer);
-        assertEquals("Ali", saved.getFirstName());
-        assertEquals("ali@example.com", saved.getEmail());
+        when(customerMapper.toEntity(any(CustomerDTO.class))).thenReturn(customerEntity);
+
+        when(customerRepository.save(any(Customer.class))).thenReturn(customerEntity);
+
+        when(cartRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        when(customerMapper.toDTO(any(Customer.class))).thenReturn(customerDTO);
+
+        CustomerDTO savedCustomerDTO = customerService.addCustomer(customerDTO);
+
+        assertEquals("Ali", savedCustomerDTO.getFirstName());
+        assertEquals("ali@example.com", savedCustomerDTO.getEmail());
     }
 }

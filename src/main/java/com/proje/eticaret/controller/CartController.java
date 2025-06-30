@@ -1,50 +1,45 @@
 package com.proje.eticaret.controller;
 
-import com.proje.eticaret.entity.Cart;
+import com.proje.eticaret.dto.AddProductRequest;
+import com.proje.eticaret.dto.CartDTO;
 import com.proje.eticaret.service.CartService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/carts")
+@RequiredArgsConstructor
 public class CartController {
 
-    @Autowired
-    private CartService cartService;
+    private final CartService cartService;
 
-    @GetMapping("/{customerId}")
-    public Cart getCart(@PathVariable Long customerId) {
-        return cartService.getCartByCustomerId(customerId);
+    @GetMapping("/{id}")
+    public ResponseEntity<CartDTO> getCartById(@PathVariable Long id) {
+        return ResponseEntity.ok(cartService.getCartById(id));
     }
 
-    @PostMapping("/{customerId}/add")
-    public Cart addProductToCart(
-            @PathVariable Long customerId,
-            @RequestParam Long productId,
-            @RequestParam Integer quantity
-    ) {
-        return cartService.addProductToCart(customerId, productId, quantity);
+    @GetMapping
+    public ResponseEntity<List<CartDTO>> getAllCarts() {
+        return ResponseEntity.ok(cartService.getAllCarts());
     }
 
-    @DeleteMapping("/{customerId}/remove")
-    public Cart removeProductFromCart(
-            @PathVariable Long customerId,
-            @RequestParam Long productId
-    ) {
-        return cartService.removeProductFromCart(customerId, productId);
+    @PutMapping("/{id}")
+    public ResponseEntity<CartDTO> updateCart(@PathVariable Long id, @RequestBody CartDTO cartDTO) {
+        return ResponseEntity.ok(cartService.updateCart(id, cartDTO));
     }
 
-    @PutMapping("/{customerId}/update")
-    public Cart updateCartItemQuantity(
-            @PathVariable Long customerId,
-            @RequestParam Long productId,
-            @RequestParam Integer quantity
-    ) {
-        return cartService.updateCartItemQuantity(customerId, productId, quantity);
+    @PutMapping("/{id}/empty")
+    public ResponseEntity<Void> emptyCart(@PathVariable Long id) {
+        cartService.emptyCart(id);
+        return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{customerId}/empty")
-    public Cart emptyCart(@PathVariable Long customerId) {
-        return cartService.emptyCart(customerId);
+    @PutMapping("/{id}/add-product")
+    public ResponseEntity<Void> addProductToCart(@PathVariable Long id, @RequestBody AddProductRequest request) {
+        cartService.addProductToCart(id, request.getProductId(), request.getQuantity());
+        return ResponseEntity.ok().build();
     }
 }

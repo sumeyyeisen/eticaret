@@ -2,13 +2,16 @@ package com.proje.eticaret.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-@Data
-@NoArgsConstructor
 
+@NoArgsConstructor
+@Getter
+@Setter
 @MappedSuperclass
 public abstract class BaseEntity {
 

@@ -1,16 +1,14 @@
 package com.proje.eticaret.service;
 
-import com.proje.eticaret.entity.Cart;
+import com.proje.eticaret.dto.CartDTO;
+
+import java.util.List;
 
 public interface CartService {
-
-    Cart getCartByCustomerId(Long customerId);
-
-    Cart addProductToCart(Long customerId, Long productId, Integer quantity);
-
-    Cart removeProductFromCart(Long customerId, Long productId);
-
-    Cart updateCartItemQuantity(Long customerId, Long productId, Integer quantity);
-
-    Cart emptyCart(Long customerId);
+    CartDTO getCartById(Long id);
+    List<CartDTO> getAllCarts();
+    CartDTO updateCart(Long id, CartDTO cartDTO);
+    void emptyCart(Long id);
+    void addProductToCart(Long cartId, Long productId, Integer quantity);
+    CartDTO getCartByCustomerId(Long customerId);
 }

@@ -1,6 +1,5 @@
 package com.proje.eticaret.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
@@ -11,7 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class Customer extends BaseEntity{
@@ -24,7 +24,6 @@ public class Customer extends BaseEntity{
     private String password;
 
     @OneToOne(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
     private Cart cart;
 
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)

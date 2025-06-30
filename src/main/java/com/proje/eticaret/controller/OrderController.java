@@ -1,8 +1,9 @@
 package com.proje.eticaret.controller;
 
-import com.proje.eticaret.entity.Order;
+import com.proje.eticaret.dto.OrderDTO;
 import com.proje.eticaret.service.OrderService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,21 +15,18 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    // Sipariş oluştur (sepeti siparişe çevir)
     @PostMapping("/place/{customerId}")
-    public Order placeOrder(@PathVariable Long customerId) {
-        return orderService.placeOrder(customerId);
+    public ResponseEntity<OrderDTO> placeOrder(@PathVariable Long customerId) {
+        return ResponseEntity.ok(orderService.placeOrder(customerId));
     }
 
-    // Siparişi kod ile getir
-    @GetMapping("/{code}")
-    public Order getOrderByCode(@PathVariable String code) {
-        return orderService.getOrderByCode(code);
+    @GetMapping("/code/{code}")
+    public ResponseEntity<OrderDTO> getOrderByCode(@PathVariable String code) {
+        return ResponseEntity.ok(orderService.getOrderByCode(code));
     }
 
-    // Müşterinin tüm siparişlerini getir
     @GetMapping("/customer/{customerId}")
-    public List<Order> getOrdersForCustomer(@PathVariable Long customerId) {
-        return orderService.getOrdersForCustomer(customerId);
+    public ResponseEntity<List<OrderDTO>> getAllOrdersForCustomer(@PathVariable Long customerId) {
+        return ResponseEntity.ok(orderService.getAllOrdersForCustomer(customerId));
     }
 }

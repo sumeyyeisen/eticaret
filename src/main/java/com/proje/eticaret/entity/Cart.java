@@ -11,7 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Cart extends BaseEntity{
@@ -19,9 +20,8 @@ public class Cart extends BaseEntity{
     private Double totalPrice=0.0;
 
     @OneToOne
-    @JsonBackReference
     private Customer customer;
 
     @OneToMany(mappedBy = "cart",cascade = CascadeType.ALL,orphanRemoval = true)
-    private List<CartItem>cartItems=new ArrayList<>();
+    private List<Item>items=new ArrayList<>();
 }

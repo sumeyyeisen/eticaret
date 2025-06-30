@@ -1,8 +1,8 @@
+
 package com.proje.eticaret.service;
 
-import com.proje.eticaret.entity.Customer;
+import com.proje.eticaret.dto.CustomerDTO;
 
 public interface CustomerService {
-    Customer addCustomer(Customer customer);
-
+    CustomerDTO addCustomer(CustomerDTO customerDTO);
 }
